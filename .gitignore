@@ -3,10 +3,8 @@
 .RData
 inst/doc
 # History files
-.Rhistory
 .Rapp.history
 # Session Data files
-.RData
 # Output files from R CMD build
 /*.tar.gz
 # vim files
@@ -15,3 +13,6 @@ inst/doc
 # compiled object files
 *.o
 *.so
+.manifest.json
+accra/popdens/*.zip
+kathmandu/popdens/*zip

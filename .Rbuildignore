@@ -9,3 +9,5 @@ data-raw/
 ^appveyor\.yml$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^\.pbattributes$
+^\.manifest\.json$

@@ -1,0 +1,31 @@
+```{r, eval=TRUE, echo=TRUE}
+devtools::load_all (".", export_all = FALSE)
+#devtools::load_all (".", export_all = FALSE, recompile = TRUE)
+#devtools::load_all (".")
+devtools::document (".")
+devtools::run_examples ()
+devtools::test ()
+devtools::check (".")
+devtools::build_vignettes (".")
+goodpractice::gp (".")
+#devtools::spell_check ()
+```
+
+## initial popdens zip data
+
+```{r}
+library (piggyback)
+pb_track (c ("accra/popdens/*.zip", "kathmandu/popdens/*zip"))
+pb_push (repo = "ATFutures/who-data", tag = "worldpop-zip-gha-npl")
+```
+
+## convert to tif format
+
+```{r}
+devtools::load_all (".", export_all = FALSE)
+crop_worldpop_tif (city = "accra")
+crop_worldpop_tif (city = "kathmandu")
+pb_track (c ("accra/popdens/*.zip", "kathmandu/popdens/*zip",
+             "accra/popdens/*.tif", "kathmandu/popdens/*.tif"))
+pb_push (repo = "ATFutures/who-data", tag = "worldpop-tif-gha-npl")
+```

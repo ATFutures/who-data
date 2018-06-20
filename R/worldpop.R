@@ -1,0 +1,69 @@
+# functions to process worldpop data
+
+#' worldpop_files
+#'
+#' Get lists of worldpop files
+#' @param type either "zip" (pre-processed) or "tif" (processed)
+#' @return Character vector of file names to be used to extract files from
+#' github releases via \pkg{piggyback}
+#' @export
+worldpop_files <- function (type = "zip")
+{
+    type <- match.arg (type, c ("zip", "tif"))
+
+    # these are same for .zip and .tif; kathmandu names differ
+    fnames_gha <- c ("GHA14_A0005_adjv1", "GHA14_A0510_adjv1",
+                     "GHA14_A1015_adjv1", "GHA14_A1520_adjv1",
+                     "GHA14_A2025_adjv1", "GHA14_A2530_adjv1",
+                     "GHA14_A3035_adjv1", "GHA14_A3540_adjv1",
+                     "GHA14_A4045_adjv1", "GHA14_A4550_adjv1",
+                     "GHA14_A5055_adjv1", "GHA14_A5560_adjv1",
+                     "GHA14_A6065_adjv1", "GHA14_A65PL_adjv1",
+                     "GHA15adj_040213")
+
+    if (type == "zip")
+    {
+        fnames_gha <- file.path ("accra", "popdens", paste0 (fnames_gha, ".zip"))
+        fnames_npl <- file.path ("kathmandu", "popdens",
+                                 c ("NPL_ppp_2015_adj_v2.zip",
+                                    "NPL_ppp_2020_adj_v2.zip"))
+    } else
+    {
+        fnames_gha <- file.path ("accra", "popdens", paste0 (fnames_gha, ".tif"))
+        fnames_npl <- file.path ("kathmandu", "popdens",
+                                 c ("NPL_ppp_v2c_2015_UNadj.tif",
+                                    "NPL_ppp_v2c_2020_UNadj.tif"))
+    }
+    c (fnames_gha, fnames_npl)
+}
+
+#' upload_worldpop_zip
+#'
+#' upload the worldpop zip files to repo via piggyback
+#' @export
+upload_worldpop_zipfiles <- function ()
+{
+    flist <- worldpop_files (type = "zip")
+    piggyback::pb_track (c ("accra/popdens/*.zip", "kathmandu/popdens/*zip"))
+    junk <- lapply (flist, function (i)
+                    {
+                        message ("uploading ", i)
+                        piggyback::pb_upload (i, repo = "ATFutures/who-data", 
+                                              tag = "v0.0.1-worldpop-zip-gha-npl")
+                    })
+}
+
+#' download_worldpop_zip
+#'
+#' download the worldpop zip files from repo via piggyback
+#' @export
+download_worldpop_zipfiles <- function ()
+{
+    flist <- worldpop_files (type = "zip")
+    junk <- lapply (flist, function (i)
+                    {
+                        message ("uploading ", i)
+                        piggyback::pb_download (i, repo = "ATFutures/who-data", 
+                                                tag = "v0.0.1-worldpop-zip-gha-npl")
+                    })
+}
