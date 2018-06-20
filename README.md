@@ -82,3 +82,9 @@ junk <- lapply (cities, function (i) get_who_streets (city = i))
 junk <- lapply (cities, function (i) get_who_buildings (city = i))
 junk <- lapply (cities, function (i) get_who_busstops (city = i))
 ```
+
+Then upload to repo with
+
+``` r
+upload_osm ()
+```

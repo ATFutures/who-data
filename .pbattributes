@@ -2,3 +2,6 @@ accra/popdens/*.zip
 kathmandu/popdens/*zip
 accra/popdens/*.tif
 kathmandu/popdens/*tif
+accra/osm/*.Rds
+bristol/osm/*.Rds
+kathmandu/osm/*.Rds
