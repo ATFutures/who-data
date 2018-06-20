@@ -45,3 +45,8 @@ These files can then be converted to local `.tif` files with
 crop_worldpop_tif (city = "accra")
 crop_worldpop_tif (city = "kathmandu")
 ```
+And then uploaded via piggyback to corresponding release
+`v0.0.2-worldpop-tif-gha-npl` with
+```{r, eval = FALSE}
+upload_worldpop_tiffiles ()
+```

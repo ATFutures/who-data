@@ -9,7 +9,7 @@ yet.](http://www.repostatus.org/badges/0.1.0/concept.svg)](http://www.repostatus
 
 Data for [`who` repo](https://github.com/ATFutures/who).
 
-# worldpop download and pre-processing
+# worldpop download and pre-processing (does not need to be run)
 
 Data must be manually downloaded from
 [worldpop](http://www.worldpop.org.uk/). See `?worldpop_files (type =
@@ -28,4 +28,18 @@ the repo with
 
 ``` r
 download_worldpop_zipfiles ()
+```
+
+These files can then be converted to local `.tif` files with
+
+``` r
+crop_worldpop_tif (city = "accra")
+crop_worldpop_tif (city = "kathmandu")
+```
+
+And then uploaded via piggyback to corresponding release
+`v0.0.2-worldpop-tif-gha-npl` with
+
+``` r
+upload_worldpop_tiffiles ()
 ```

@@ -16,3 +16,5 @@ inst/doc
 .manifest.json
 accra/popdens/*.zip
 kathmandu/popdens/*zip
+accra/popdens/*.tif
+kathmandu/popdens/*tif

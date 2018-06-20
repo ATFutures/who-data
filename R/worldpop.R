@@ -19,7 +19,7 @@ worldpop_files <- function (type = "zip")
                      "GHA14_A5055_adjv1", "GHA14_A5560_adjv1",
                      "GHA14_A6065_adjv1", "GHA14_A65PL_adjv1",
                      "GHA15adj_040213")
-    fnames_npl <- c ("NPL_ppp_2015_adj_v2.zip", "NPL_ppp_2020_adj_v2.zip")
+    fnames_npl <- c ("NPL_ppp_2015_adj_v2", "NPL_ppp_2020_adj_v2")
 
     if (type == "zip")
     {
