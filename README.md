@@ -73,7 +73,7 @@ not archived in this repo. This file can then be processed with
 crop_global_tif (city = "Bristol")
 ```
 
-# Street network download
+# Street network up- and down-load
 
 ``` r
 library (sf) # pre-load required
@@ -87,4 +87,22 @@ Then upload to repo with
 
 ``` r
 upload_osm ()
+```
+
+and download with
+
+``` r
+download_osm ()
+```
+
+# Population densities matched to street network nodes
+
+This is done via the [`popdens`
+package](https://github.com/ATFutures/popdens), using the single
+`pop2point` function. Simply
+
+``` r
+popdens::pop2point (city = "kathmandu")
+popdens::pop2point (city = "accra")
+whodata::upload_popdens_nodes ()
 ```
