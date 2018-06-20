@@ -59,6 +59,11 @@ crop_worldpop_tif <- function (city = "accra", expand = 0.1)
 #' at present) and deposits the results in the appropriate \code{[city]/popdens}
 #' directory.
 #'
+#' The main JRCDC page is
+#' \url{http://data.jrc.ec.europa.eu/dataset/jrc-ghsl-ghs_pop_gpw4_globe_r2015a},
+#' leading to the download of GHS_POP_GPW42015_GLOBE_R2015A_54009_250_v1_0.zip,
+#' which is 1GB, and is not archived in this repo.
+#'
 #' @param city Name of city (one of "accra", "kathmandu", or "bristol")
 #' @param expand Relative factor by which to expand cropping limits beyond
 #' rectangular bounding box of city

@@ -103,13 +103,13 @@ get_who_buildings <- function (city = "kathmandu", n = 1)
 }
 
 lonlat2UTM <- function(lonlat)
-{                  
-    utm <- (floor ( (lonlat [1] + 180) / 6) %% 60) + 1   
+{
+    utm <- (floor ( (lonlat [1] + 180) / 6) %% 60) + 1
     if (lonlat [2] > 0)
         utm + 32600
-    else               
-        utm + 32700                                      
-}                                                
+    else
+        utm + 32700
+}
                                                      
 #' get_bus_polygon_centroids
 #'
@@ -176,7 +176,7 @@ get_who_busstops <- function (city = "kathmandu")
     dat <- c (dat1$geometry, dat2$geometry, dat3, dat4)
     dat <- dat [!duplicated (dat)]
 
-    write_who_data (dat, city = city, suffix = "bs")
+    write_who_data (dat, city = city, suffix = "bus")
 
     invisible (dat)
 }
@@ -235,4 +235,3 @@ is_sf_loaded <- function ()
         message ("It is generally necessary to pre-load the sf package ",
                  "for this functions to work correctly")
 }
-

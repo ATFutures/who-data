@@ -23,6 +23,12 @@ project. This function crops them to designated cities (actuall only Bristol
 at present) and deposits the results in the appropriate \code{[city]/popdens}
 directory.
 }
+\details{
+The main JRCDC page is
+\url{http://data.jrc.ec.europa.eu/dataset/jrc-ghsl-ghs_pop_gpw4_globe_r2015a},
+leading to the download of GHS_POP_GPW42015_GLOBE_R2015A_54009_250_v1_0.zip,
+which is 1GB, and is not archived in this repo.
+}
 \note{
 This should be run from somewhere within the \code{whodata} repository
 structure; anywhere else will likely fail. It also takes a r-e-a-l-l-y long
