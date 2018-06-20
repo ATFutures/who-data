@@ -1,0 +1,19 @@
+Package: whodata
+Title: ATFutures development package
+Version: 0.0.0.9000
+Authors@R: c(
+  person("Mark", "Padgham", email="mark.padgham@email.com", role=c("aut", "cre")),
+  person("Robin", "Lovelace", email = "rob00x@gmail.com", role = c("aut")) 
+  )
+Description: WHO metapackage for pre-processing of WHO data.
+Depends: R (>= 3.3.3),
+  popdens
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+Suggests:
+    knitr,
+    testthat
+VignetteBuilder: knitr
+RoxygenNote: 6.0.1.9000
+Additional_repositories: https://ATFutures.github.io/drat
