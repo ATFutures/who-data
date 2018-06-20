@@ -41,5 +41,6 @@ download_popdens_nodes <- function ()
 download_who_data <- function ()
 {
     download_worldpop_tiffiles ()
+    download_popdens_nodes ()
     download_osm ()
 }
