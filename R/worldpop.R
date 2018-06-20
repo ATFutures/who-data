@@ -44,7 +44,7 @@ worldpop_files <- function (type = "zip")
 upload_worldpop_zipfiles <- function ()
 {
     flist <- worldpop_files (type = "zip")
-    piggyback::pb_track (c ("accra/popdens/*.zip", "kathmandu/popdens/*zip"))
+    piggyback::pb_track (c ("accra/popdens/*.zip", "kathmandu/popdens/*.zip"))
     junk <- lapply (flist, function (i)
                     {
                         message ("uploading ", i)
@@ -84,7 +84,7 @@ remove_worldpop_zip <- function ()
 upload_worldpop_tiffiles <- function ()
 {
     flist <- worldpop_files (type = "tif")
-    piggyback::pb_track (c ("accra/popdens/*.tif", "kathmandu/popdens/*tif"))
+    piggyback::pb_track (c ("accra/popdens/*.tif", "kathmandu/popdens/*.tif"))
     junk <- lapply (flist, function (i)
                     {
                         message ("uploading ", i)

@@ -235,3 +235,47 @@ is_sf_loaded <- function ()
         message ("It is generally necessary to pre-load the sf package ",
                  "for this functions to work correctly")
 }
+
+#' osm_files
+#' List all OSM files
+#' @export
+osm_files <- function ()
+{
+    cities <- who_cities ()
+    types <- c ("bldg", "bus", "hw")
+    cities <- rep (cities, each = 3)
+    file.path (cities, "osm", paste0 (cities, "-", types, ".Rds"))
+}
+
+#' upload_osm
+#'
+#' upload the worldpop tif files to repo via piggyback
+#' @export
+upload_osm <- function ()
+{
+    flist <- osm_files ()
+    piggyback::pb_track (c ("accra/osm/*.Rds",
+                            "bristol/osm/*.Rds",
+                            "kathmandu/osm/*.Rds"))
+    junk <- lapply (flist, function (i)
+                    {
+                        message ("uploading ", i)
+                        piggyback::pb_upload (i, repo = "ATFutures/who-data",
+                                      tag = "v0.0.3-osmdata")
+                    })
+}
+
+#' download_osm
+#'
+#' download the worldpop tif files from repo via piggyback
+#' @export
+download_osm <- function ()
+{
+    flist <- osm_files ()
+    junk <- lapply (flist, function (i)
+                    {
+                        message ("downloading ", i)
+                        piggyback::pb_download (i, repo = "ATFutures/who-data",
+                                        tag = "v0.0.3-osmdata")
+                    })
+}
