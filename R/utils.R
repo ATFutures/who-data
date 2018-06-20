@@ -43,4 +43,5 @@ download_who_data <- function ()
     download_worldpop_tiffiles ()
     download_popdens_nodes ()
     download_osm ()
+    download_bristol_pop ()
 }

@@ -84,7 +84,8 @@ remove_worldpop_zip <- function ()
 upload_worldpop_tiffiles <- function ()
 {
     flist <- worldpop_files (type = "tif")
-    piggyback::pb_track (c ("accra/popdens/*.tif", "kathmandu/popdens/*.tif"))
+    piggyback::pb_track (c ("accra/popdens/*.tif", "kathmandu/popdens/*.tif",
+                            "bristol/popdens/*.tif"))
     junk <- lapply (flist, function (i)
                     {
                         message ("uploading ", i)
@@ -108,3 +109,23 @@ download_worldpop_tiffiles <- function ()
                     })
 }
 
+#' upload_bristol_pop
+#' Upload the \code{tif} file disected with \link{crop_global_tif}
+#' @export
+upload_bristol_pop <- function ()
+{
+    f <- list.files (file.path ("bristol", "popdens"),
+                     full.names = TRUE)
+    piggyback::pb_upload (f, repo = "ATFutures/who-data",
+                          tag = "v0.0.2-worldpop-tif-gha-npl")
+}
+
+#' download_bristol_pop
+#' Download the \code{tif} file disected with \link{crop_global_tif}
+#' @export
+download_bristol_pop <- function ()
+{
+    f <- "bristol.2fpopdens.2fGHS_POP_GPW42015_GLOBE_R2015A_54009_250_v1_0.tif"
+    piggyback::pb_download (f, repo = "ATFutures/who-data",
+                            tag = "v0.0.2-worldpop-tif-gha-npl")
+}
