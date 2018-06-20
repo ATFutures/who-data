@@ -76,3 +76,35 @@ remove_worldpop_zip <- function ()
 {
     junk <- file.remove (worldpop_files (type = "zip")) #nolint
 }
+
+#' upload_worldpop_tif
+#'
+#' upload the worldpop tif files to repo via piggyback
+#' @export
+upload_worldpop_tiffiles <- function ()
+{
+    flist <- worldpop_files (type = "tif")
+    piggyback::pb_track (c ("accra/popdens/*.tif", "kathmandu/popdens/*tif"))
+    junk <- lapply (flist, function (i)
+                    {
+                        message ("uploading ", i)
+                        piggyback::pb_upload (i, repo = "ATFutures/who-data",
+                                      tag = "v0.0.2-worldpop-tif-gha-npl")
+                    })
+}
+
+#' download_worldpop_tif
+#'
+#' download the worldpop tif files from repo via piggyback
+#' @export
+download_worldpop_tiffiles <- function ()
+{
+    flist <- worldpop_files (type = "tif")
+    junk <- lapply (flist, function (i)
+                    {
+                        message ("downloading ", i)
+                        piggyback::pb_download (i, repo = "ATFutures/who-data",
+                                        tag = "v0.0.2-worldpop-tif-gha-npl")
+                    })
+}
+
