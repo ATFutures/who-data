@@ -122,7 +122,7 @@ lonlat2UTM <- function(lonlat)
 get_bus_polygon_centroids <- function (dat)
 {
     polys <- dat$osm_polygons
-    xy <- NULL
+    xy <- . <- NULL
     if (nrow (polys) > 0)
     {
         # sample one point to determine UTM
