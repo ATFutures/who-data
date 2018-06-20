@@ -11,7 +11,6 @@ worldpop_files <- function (type = "zip")
 {
     type <- match.arg (type, c ("zip", "tif"))
 
-    # these are same for .zip and .tif; kathmandu names differ
     fnames_gha <- c ("GHA14_A0005_adjv1", "GHA14_A0510_adjv1",
                      "GHA14_A1015_adjv1", "GHA14_A1520_adjv1",
                      "GHA14_A2025_adjv1", "GHA14_A2530_adjv1",
@@ -20,19 +19,20 @@ worldpop_files <- function (type = "zip")
                      "GHA14_A5055_adjv1", "GHA14_A5560_adjv1",
                      "GHA14_A6065_adjv1", "GHA14_A65PL_adjv1",
                      "GHA15adj_040213")
+    fnames_npl <- c ("NPL_ppp_2015_adj_v2.zip", "NPL_ppp_2020_adj_v2.zip")
 
     if (type == "zip")
     {
-        fnames_gha <- file.path ("accra", "popdens", paste0 (fnames_gha, ".zip"))
+        fnames_gha <- file.path ("accra", "popdens",
+                                 paste0 (fnames_gha, ".zip"))
         fnames_npl <- file.path ("kathmandu", "popdens",
-                                 c ("NPL_ppp_2015_adj_v2.zip",
-                                    "NPL_ppp_2020_adj_v2.zip"))
+                                 paste0 (fnames_npl, ".zip"))
     } else
     {
-        fnames_gha <- file.path ("accra", "popdens", paste0 (fnames_gha, ".tif"))
+        fnames_gha <- file.path ("accra", "popdens",
+                                 paste0 (fnames_gha, ".tif"))
         fnames_npl <- file.path ("kathmandu", "popdens",
-                                 c ("NPL_ppp_v2c_2015_UNadj.tif",
-                                    "NPL_ppp_v2c_2020_UNadj.tif"))
+                                 paste0 (fnames_npl, ".tif"))
     }
     c (fnames_gha, fnames_npl)
 }
@@ -48,8 +48,8 @@ upload_worldpop_zipfiles <- function ()
     junk <- lapply (flist, function (i)
                     {
                         message ("uploading ", i)
-                        piggyback::pb_upload (i, repo = "ATFutures/who-data", 
-                                              tag = "v0.0.1-worldpop-zip-gha-npl")
+                        piggyback::pb_upload (i, repo = "ATFutures/who-data",
+                                      tag = "v0.0.1-worldpop-zip-gha-npl")
                     })
 }
 
@@ -62,8 +62,17 @@ download_worldpop_zipfiles <- function ()
     flist <- worldpop_files (type = "zip")
     junk <- lapply (flist, function (i)
                     {
-                        message ("uploading ", i)
-                        piggyback::pb_download (i, repo = "ATFutures/who-data", 
-                                                tag = "v0.0.1-worldpop-zip-gha-npl")
+                        message ("downloading ", i)
+                        piggyback::pb_download (i, repo = "ATFutures/who-data",
+                                        tag = "v0.0.1-worldpop-zip-gha-npl")
                     })
+}
+
+#' remove_worldpop_zip
+#'
+#' Remove all worldpop zip files from local storage
+#' @export
+remove_worldpop_zip <- function ()
+{
+    junk <- file.remove (worldpop_files (type = "zip")) #nolint
 }

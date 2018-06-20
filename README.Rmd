@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 
 Data for [`who` repo](https://github.com/ATFutures/who).
 
-# worldpop download and pre-processing
+# worldpop download and pre-processing (does not need to be run)
 
 Data must be manually downloaded from [worldpop](http://www.worldpop.org.uk/).
 See `?worldpop_files (type = "zip")` for list of which files need to be
@@ -40,3 +40,8 @@ with
 download_worldpop_zipfiles ()
 ```
 
+These files can then be converted to local `.tif` files with
+```{r, eval = FALSE}
+crop_worldpop_tif (city = "accra")
+crop_worldpop_tif (city = "kathmandu")
+```
