@@ -32,6 +32,39 @@ download_popdens_nodes <- function ()
                     })
 }
 
+#' upload_flows
+#' @export
+upload_flows <- function ()
+{
+    flist <- list.files (file.path (c ("accra", "kathmandu"), "flows"),
+                         full.names = TRUE)
+    junk <- lapply (flist, function (i)
+                    {
+                        message ("uploading ", i)
+                        piggyback::pb_upload (i, repo = "ATFutures/who-data",
+                                      tag = "v0.0.4-flowlayers")
+                    })
+}
+
+#' download_flows
+#' @export
+download_flows <- function ()
+{
+    flist <- file.path ("flows", c ("flow_foot_activity_bus.Rds",
+                                    "flow_foot_bus_activity.Rds",
+                                    "flow_foot_bus_residential.Rds",
+                                    "flow_foot_residential_bus.Rds"))
+    flist <- unlist (lapply (flist, function (i)
+                             c (paste0 ("accra/", i),
+                                paste0 ("kathmandu/", i))))
+    junk <- lapply (flist, function (i)
+                    {
+                        message ("downloading ", i)
+                        piggyback::pb_download (i, repo = "ATFutures/who-data",
+                                      tag = "v0.0.4-flowlayers")
+                    })
+}
+
 #' download_who_data
 #'
 #' Download all WHO data from github repo via \pkg{piggyback}. This function can
@@ -44,4 +77,5 @@ download_who_data <- function ()
     download_popdens_nodes ()
     download_osm ()
     download_bristol_pop ()
+    download_flows ()
 }
