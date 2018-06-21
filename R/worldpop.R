@@ -125,7 +125,9 @@ upload_bristol_pop <- function ()
 #' @export
 download_bristol_pop <- function ()
 {
-    f <- "bristol.2fpopdens.2fGHS_POP_GPW42015_GLOBE_R2015A_54009_250_v1_0.tif"
+    # hard-coded because pb_list does not current work
+    # TODO: use pb_list once it's working again
+    f <- "bristol/popdens/GHS_POP_GPW42015_GLOBE_R2015A_54009_250_v1_0.tif"
     piggyback::pb_download (f, repo = "ATFutures/who-data",
                             tag = "v0.0.2-worldpop-tif-gha-npl")
 }
