@@ -33,8 +33,9 @@ download_popdens_nodes <- function ()
 }
 
 #' upload_flows
+#' @param overwrite Should generally be set to \code{TRUE}.
 #' @export
-upload_flows <- function ()
+upload_flows <- function (overwrite = TRUE)
 {
     flist <- list.files (file.path (c ("accra", "kathmandu"), "flows"),
                          full.names = TRUE)
@@ -42,7 +43,8 @@ upload_flows <- function ()
                     {
                         message ("uploading ", i)
                         piggyback::pb_upload (i, repo = "ATFutures/who-data",
-                                      tag = "v0.0.4-flowlayers")
+                                      tag = "v0.0.4-flowlayers",
+                                      overwrite = overwrite)
                     })
 }
 
