@@ -3,8 +3,10 @@
 ^\.travis\.yml$
 ^README\.md$
 ^makefile$
-docs/
-data-raw/
+accra/
+bristol/
+code/
+kathmandu/
 ^_pkgdown\.yml$
 ^appveyor\.yml$
 ^.*\.Rproj$

@@ -3,17 +3,22 @@ Title: ATFutures development package
 Version: 0.0.0.9000
 Authors@R: c(
   person("Mark", "Padgham", email="mark.padgham@email.com", role=c("aut", "cre")),
-  person("Robin", "Lovelace", email = "rob00x@gmail.com", role = c("aut")) 
+  person("Robin", "Lovelace", email = "rob00x@gmail.com", role = c("aut")),
+  person("Nikee", "Groot", role=c("ctb")) 
   )
 Description: WHO metapackage for pre-processing of WHO data.
 Imports:
+    dplyr,
     here,
     jsonlite,
     magrittr,
+    methods,
     osmdata,
     piggyback,
     raster,
-    sf
+    rgdal,
+    sf,
+    sp
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
