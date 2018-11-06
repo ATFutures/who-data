@@ -3,6 +3,9 @@
 #'
 #' Get list of places according to googel
 #'
+#' @note This function requires setting a personal key for the google API with
+#' \code{Sys.setenv(GOOGLE_API = "<my_key>")}.
+#'
 #' @param radius Radius to be used for googel nearby place search (in metres)
 #' @return A \code{data.frame} of place locations, names, and types
 #' @export
@@ -10,6 +13,8 @@ get_accra_gplaces <- function (radius = 200)
 {
     xy <- accra_coordinates ()
     api_key <- Sys.getenv ("GOOGLE_API")
+    if (nchar (api_key) == 0)
+        stop ("This first requires Sys.setenv(GOOGLE_API = '<my_key>')")
     pb <- txtProgressBar (style = 3)
     places <- NULL
     for (i in seq (nrow (xy)))
@@ -22,7 +27,7 @@ get_accra_gplaces <- function (radius = 200)
 
     places <- places [!duplicated (places$place_id), ]
     saveRDS (places, file = file.path (here::here (), "accra", "osm",
-                                       "accra-gplaces.Rds")
+                                       "accra-gplaces.Rds"))
     return (places)
 }
 
