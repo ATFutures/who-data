@@ -29,34 +29,39 @@ accra_coordinates <- function (radius = 200)
     # distance to the next row of y coords is sin(60) * 1000, so 500 + x times
     # this for each next row
 
-    xgp <- rep (c (seq (swgp [, 2], swgp [, 2] + 30000, lonShift),
-                   seq (swgp [, 2] + 0.5 * lonShift,
-                        swgp [, 2] + (30000 - 0.5 * lonShift), lonShift)),
-                floor (latRep / 2))
+    xgp <- rep (c (seq (swgp [, 2], swgp [, 2] + 30000, lon_shift),
+                   seq (swgp [, 2] + 0.5 * lon_shift,
+                        swgp [, 2] + (30000 - 0.5 * lon_shift), lon_shift)),
+                floor (lat_rep / 2))
     # in case there is an odd number of rows, add another full row of x coords at the top
-    if (latRep - (2 * floor (latRep / 2)) != 0)
-        xgp <- c (xgp, seq (swgp [, 2], swgp [, 2] + 30000, lonShift))
+    if (lat_rep - (2 * floor (lat_rep / 2)) != 0)
+        xgp <- c (xgp, seq (swgp [, 2], swgp [, 2] + 30000, lon_shift))
 
-    ygp <- rep (swgp [, 1], lonRep)
-    for (i in 2:latRep)
+    ygp <- rep (swgp [, 1], lon_rep)
+    for (i in 2:lat_rep)
     {
         if (i %% 2 == 0)
-            ygp <- c (ygp, rep (swgp [, 1] + (i - 1) * latShift, lonRep - 1))
+            ygp <- c (ygp, rep (swgp [, 1] + (i - 1) * lat_shift, lon_rep - 1))
         else
-            ygp <- c (ygp, rep (swgp [, 1] + (i - 1) * latShift, lonRep))
+            ygp <- c (ygp, rep (swgp [, 1] + (i - 1) * lat_shift, lon_rep))
     }
     xy <- sf::sf_project ("+init=epsg:25000","+proj=longlat +datum=WGS84",
                     as.matrix (cbind (ygp, xgp)))
 
-    # clip to Accra metropolitan district shapefile - should already be in WGS84
-    accraSHP <- rgdal::readOGR (file.path (here::here (), "accra",
-                                           "AccraMetroAdmin/"),
-                                verbose = FALSE)
-    xy_bdry <- slot (slot (accraSHP, "polygons") [[1]], "Polygons") [[1]]
-    xy_bdry <- slot (xy_bdry, "coords") # these are [lon, lat]
-    indx <- which (sp::point.in.polygon (xy [, 2], xy [, 1],
+    # clip to Accra metropolitan district
+    xy_bdry <- accra_boundary ()
+    indx <- which (sp::point.in.polygon (xy [, 1], xy [, 2],
                                          xy_bdry [, 1], xy_bdry [, 2]) == 1)
     # proj4string (accraSHP)
     xy [indx, ]
 }
 
+# Accra metropolitan district shapefile
+accra_boundary <- function ()
+{
+    accraSHP <- rgdal::readOGR (file.path (here::here (), "accra",
+                                           "AccraMetroAdmin/"),
+                                verbose = FALSE)
+    xy <- slot (slot (accraSHP, "polygons") [[1]], "Polygons") [[1]]
+    slot (xy, "coords") [, 2:1] # stored as [lon, lat]
+}
