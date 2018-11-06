@@ -1,21 +1,58 @@
 
-# google returns a maximum of 200 places within the circle of specified radius
-radar_search <- function (location, radius = 200)
+#' get_accra_gplaces
+#'
+#' Get list of places according to googel
+#'
+#' @param radius Radius to be used for googel nearby place search (in metres)
+#' @return A \code{data.frame} of place locations, names, and types
+#' @export
+get_accra_gplaces <- function (radius = 200)
 {
+    xy <- accra_coordinates ()
     api_key <- Sys.getenv ("GOOGLE_API")
+    pb <- txtProgressBar (style = 3)
+    places <- NULL
+    for (i in seq (nrow (xy)))
+    {
+        places <- rbind (places, radar_search (xy [i, ], radius = radius,
+                                               api_key = api_key))
+        setTxtProgressBar (pb, i / nrow (xy))
+    }
+    close (pb)
+
+    places <- places [!duplicated (places$place_id), ]
+    saveRDS (places, file = file.path (here::here (), "accra", "osm",
+                                       "accra-gplaces.Rds")
+    return (places)
+}
+
+# google returns a maximum of 200 places within the circle of specified radius
+radar_search <- function (location, radius = 200, api_key)
+{
     url <- "https://maps.googleapis.com/maps/api/place/nearbysearch/json?"
     url_full <- paste0 (url, "location=", paste0 (location, collapse = ","),
                         "&radius=", radius, "&key=", api_key)
     res <- jsonlite::fromJSON (url_full)$results
-    xy <- data.frame (lon = res$geometry$location$lng,
-                      lat = res$geometry$location$lat)
-    res %<>% dplyr::select (c ("name", "place_id", "reference", "types")) %>%
-        dplyr::mutate (lon = xy$lon, lat = xy$lat)
+    if (length (res) > 0)
+    {
+        xy <- data.frame (lon = res$geometry$location$lng,
+                          lat = res$geometry$location$lat)
+        res %<>% dplyr::select (c ("name", "place_id", "reference", "types")) %>%
+            dplyr::mutate (lon = xy$lon, lat = xy$lat)
+    } else
+        res <- NULL
+
+    return (res)
 }
 
+# NOTE: Function returns (y, x) because the googel places API requires 
+# (lat, lon)
 accra_coordinates <- function (radius = 200)
 {
-    sw <- as.matrix (cbind (5.521483, -0.271064)) # SW corner of accra
+    xy_bdry <- accra_boundary ()
+    # Start at SW corner
+    sw <- matrix (rev (apply (xy_bdry, 2, min)), nrow = 1) # (y, x), not (x, y)!
+    #sw <- as.matrix (cbind (5.521483, -0.271064)) # SW corner of accra
     swgp <- sf::sf_project ("+proj=longlat +datum=WGS84", "+init=epsg:25000", sw)
 
     # Determine number of times to repeat in latitudinal and longitudinal
@@ -49,10 +86,8 @@ accra_coordinates <- function (radius = 200)
                     as.matrix (cbind (ygp, xgp)))
 
     # clip to Accra metropolitan district
-    xy_bdry <- accra_boundary ()
-    indx <- which (sp::point.in.polygon (xy [, 1], xy [, 2],
+    indx <- which (sp::point.in.polygon (xy [, 2], xy [, 1],
                                          xy_bdry [, 1], xy_bdry [, 2]) == 1)
-    # proj4string (accraSHP)
     xy [indx, ]
 }
 
@@ -63,5 +98,5 @@ accra_boundary <- function ()
                                            "AccraMetroAdmin/"),
                                 verbose = FALSE)
     xy <- slot (slot (accraSHP, "polygons") [[1]], "Polygons") [[1]]
-    slot (xy, "coords") [, 2:1] # stored as [lon, lat]
+    slot (xy, "coords")
 }
