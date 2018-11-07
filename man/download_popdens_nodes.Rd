@@ -4,7 +4,10 @@
 \alias{download_popdens_nodes}
 \title{download_popdens_nodes}
 \usage{
-download_popdens_nodes()
+download_popdens_nodes(city = NULL)
+}
+\arguments{
+\item{city}{Default uploads both cities, otherwise one of Accra or Kathmandu.}
 }
 \description{
 download_popdens_nodes

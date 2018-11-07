@@ -4,9 +4,11 @@
 \alias{upload_flows}
 \title{upload_flows}
 \usage{
-upload_flows(overwrite = TRUE)
+upload_flows(city = NULL, overwrite = TRUE)
 }
 \arguments{
+\item{city}{Default uploads both cities, otherwise one of Accra or Kathmandu.}
+
 \item{overwrite}{Should generally be set to \code{TRUE}.}
 }
 \description{

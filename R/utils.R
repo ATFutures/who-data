@@ -6,6 +6,16 @@ who_cities <- function ()
     c ("accra", "bristol", "kathmandu")
 }
 
+match_city <- function (city = NULL)
+{
+    cities <- c ("accra", "kathmandu")
+    if (!is.null (city))
+        city <- match.arg (tolower (city), cities)
+    else
+        city <- cities
+    return (city)
+}
+
 #' upload_popdens_nodes
 #' @export
 upload_popdens_nodes <- function ()
@@ -20,10 +30,11 @@ upload_popdens_nodes <- function ()
 }
 
 #' download_popdens_nodes
+#' @param city Default uploads both cities, otherwise one of Accra or Kathmandu.
 #' @export
-download_popdens_nodes <- function ()
+download_popdens_nodes <- function (city = NULL)
 {
-    flist <- file.path (c ("accra", "kathmandu"), "osm", "popdens_nodes.Rds")
+    flist <- file.path (match_city (city), "osm", "popdens_nodes.Rds")
     junk <- lapply (flist, function (i)
                     {
                         message ("downloading ", i)
@@ -33,11 +44,12 @@ download_popdens_nodes <- function ()
 }
 
 #' upload_flows
+#' @param city Default uploads both cities, otherwise one of Accra or Kathmandu.
 #' @param overwrite Should generally be set to \code{TRUE}.
 #' @export
-upload_flows <- function (overwrite = TRUE)
+upload_flows <- function (city = NULL, overwrite = TRUE)
 {
-    flist <- list.files (file.path (c ("accra", "kathmandu"), "flows"),
+    flist <- list.files (file.path (match_city (city), "flows"),
                          full.names = TRUE)
     junk <- lapply (flist, function (i)
                     {
