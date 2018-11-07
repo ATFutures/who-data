@@ -68,9 +68,12 @@ download_flows <- function ()
                                     "flow_foot_bus_act_k15_d250.Rds",
                                     "flow_foot_bus_res_k15_d250.Rds",
                                     "flow_foot_res_bus_k15_d250.Rds"))
-    flist <- unlist (lapply (flist, function (i)
-                             c (paste0 ("accra/", i),
-                                paste0 ("kathmandu/", i))))
+    #flist <- unlist (lapply (flist, function (i)
+    #                         c (paste0 ("accra/", i),
+    #                            paste0 ("kathmandu/", i))))
+    # TODO: Reinstate the above once Kathmandu flows have been redone
+    # MP: Nov 2018
+    flist <- unlist (lapply (flist, function (i) (paste0 ("accra/", i))))
     junk <- lapply (flist, function (i)
                     {
                         message ("downloading ", i)
