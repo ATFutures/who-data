@@ -64,10 +64,10 @@ upload_flows <- function (city = NULL, overwrite = TRUE)
 #' @export
 download_flows <- function ()
 {
-    flist <- file.path ("flows", c ("flow_foot_act_bus_k15_d250.Rds",
-                                    "flow_foot_bus_act_k15_d250.Rds",
-                                    "flow_foot_bus_res_k15_d250.Rds",
-                                    "flow_foot_res_bus_k15_d250.Rds"))
+    flist <- file.path ("flows", c ("flow_foot_act_bus_k15.Rds",
+                                    "flow_foot_bus_act_k15.Rds",
+                                    "flow_foot_bus_res_k15.Rds",
+                                    "flow_foot_res_bus_k15.Rds"))
     #flist <- unlist (lapply (flist, function (i)
     #                         c (paste0 ("accra/", i),
     #                            paste0 ("kathmandu/", i))))
