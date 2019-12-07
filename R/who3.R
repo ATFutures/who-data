@@ -42,3 +42,21 @@ who3_network <- function (city, save = FALSE, quiet = FALSE) {
     }
     return (hw)
 }
+
+#' who3_building
+#'
+#' @inheritParams who3_network
+#' @export
+who3_building <- function (city, save = FALSE, quiet = FALSE) {
+    bp <- who3_bp (city)
+    bldg <- osmdata::opq (bbox = city) %>%
+        osmdata::add_osm_feature (key = "building", value = "!residential") %>%
+        osmdata::osmdata_xm (quiet = quiet) %>%
+        osmdata::trim_osmdata (bp)
+    if (save) {
+        fname <- file.path (tolower (city), "osm",
+                            paste0 (tolower (city), "-bldg.Rds"))
+        saveRDS (bldg, file = fname)
+    }
+    return (bldg)
+}
