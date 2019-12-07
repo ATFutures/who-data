@@ -3,7 +3,6 @@
 \docType{package}
 \name{whodata}
 \alias{whodata}
-\alias{whodata-package}
 \title{whodata}
 \description{
 whodata

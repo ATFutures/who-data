@@ -1,6 +1,6 @@
 Package: whodata
 Title: ATFutures development package
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: c(
   person("Mark", "Padgham", email="mark.padgham@email.com", role=c("aut", "cre")),
   person("Robin", "Lovelace", email = "rob00x@gmail.com", role = c("aut")),
@@ -26,5 +26,5 @@ Suggests:
     knitr,
     testthat
 VignetteBuilder: knitr
-RoxygenNote: 6.1.0
+RoxygenNote: 7.0.2
 Additional_repositories: https://ATFutures.github.io/drat
