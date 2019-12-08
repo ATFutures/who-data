@@ -60,3 +60,36 @@ who3_building <- function (city, save = FALSE, quiet = FALSE) {
     }
     return (bldg)
 }
+
+#' who3_bus_data
+#'
+#' Get bus network data for WHO3 cities (Accra, Kathmandu).
+#' @inheritParams who3_network
+#' @export
+who3_bus_data <- function (city, save = FALSE) {
+    if (grepl ("accra", city, ingore.case = TRUE)) {
+        res <- opq ("accra ghana") %>%
+            add_osm_feature (key = "bus") %>%
+            add_osm_feature (key = "type", value = "route") %>%
+            osmdata_sc (quiet = TRUE)
+    } else if (grepl ("kathmandu", city, ignore.case = TRUE)) {
+        res <- opq ("kathmandu") %>%
+            add_osm_feature (key = "route", value = "bus") %>%
+            osmdata_sf (quiet = FALSE) %>%
+            osm_poly2line ()
+        l <- res$osm_multilines
+        # then extract all constituent lines
+        ids <- do.call (c, lapply (l$geometry, function (i) names (i))) %>%
+            unname () %>%
+            unique ()
+        net <- res$osm_lines [res$osm_lines$osm_id %in% ids, ]
+        # Then bus stops
+        b <- opq ("kathmandu") %>%
+            add_osm_feature (key = "public_transport") %>%
+            osmdata_sf ()
+        stop_types <- names (table (b$osm_points$public_transport))
+        stops <- b$osm_points [b$osm_points$public_transport %in%
+                               stop_types, ]
+    }
+}
+
