@@ -318,6 +318,10 @@ who3_bus_centrality_internal <- function (city) {
     bus <- dplyr::bind_rows (out_flow, in_flow) %>%
         dplyr::group_by (id) %>%
         dplyr::summarise (flow = sum (flow))
+    # join coordinates back on to vertices:
+    v <- dodgr::dodgr_vertices (netc) %>%
+        dplyr::select (id, x, y)
+    bus <- dplyr::left_join (bus, v, by = "id")
 
     return (bus)
 }
