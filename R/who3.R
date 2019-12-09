@@ -205,6 +205,7 @@ who3_bus_stops <- function (city, save = TRUE) {
             net <- who3_bus_network (city = "accra")
         net <- readRDS (f)
 
+        type <- role <- NULL # suppress no visible binding notes
         bus_stops <- net$relation_members %>%
             dplyr::filter (type == "node" & role == "platform")
         bus_stops <- unique (bus_stops$member)
@@ -288,9 +289,12 @@ who3_bus_centrality_internal <- function (city) {
 
     if (grepl ("kathmandu", city, ignore.case = TRUE)) {
         # rename sf-network column names to sc-style
+        .vx0 <- .vx1 <- from_id <- to_id <- NULL
         netm <- dplyr::rename (netm, .vx0 = from_id, .vx1 = to_id)
     }
 
+    # suppress no visible binding notes
+    flow <- id <- NULL
     # then convert edge centrality to values at actual bus stops
     out_flow <- netm %>%
         dplyr::select (.vx0, flow) %>%
