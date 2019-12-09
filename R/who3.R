@@ -92,11 +92,26 @@ who3_network <- function (city, save = TRUE, quiet = FALSE) {
 #' @export
 who3_centrality <- function (city, save = TRUE, quiet = FALSE) {
     city <- tolower (city)
+    f <- file.path (city, "flows", "centrality-edge.Rds")
+    if (file.exists (f))
+        net <- readRDS (f)
+    else {
+        net <- who3_centrality_internal (city, save = save, quiet = quiet)
+        if (save) {
+            saveRDS (net, f)
+            if (!quiet)
+                message ("Network save to [", f, "]")
+        }
+    }
+    return (net)
+}
+
+who3_centrality_internal <- function (city, save = TRUE, quiet = FALSE) {
+    city <- tolower (city)
     f <- file.path (city, "osm", paste0 (city, "-hw-sc.Rds"))
     if (!file.exists (f))
         stop ("File [", f, "] does not exist;\nplease first run ",
               "'who3-network' to download street network data")
-
     hw <- readRDS (f)
     if (!quiet)
         message ("Preparing street network ... ", appendLF = FALSE)
@@ -117,12 +132,6 @@ who3_centrality <- function (city, save = TRUE, quiet = FALSE) {
                  as.numeric (st [3]), " seconds")
     net <- dodgr::dodgr_uncontract_graph (netc)
 
-    if (save) {
-        f <- file.path (city, "flows", "centrality-edge.Rds")
-        saveRDS (net, f)
-        if (!quiet)
-            message ("Network save to [", f, "]")
-    }
     return (net)
 }
 
