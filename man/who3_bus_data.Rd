@@ -12,5 +12,5 @@ who3_bus_data(city, save = FALSE)
 \item{save}{If `TRUE`, save data to internal `who-data` directory.}
 }
 \description{
-Get bus network data for WHO3 cities (Accra, Kathmandu).
+Get bus stop and bus network data for WHO3 cities (Accra, Kathmandu).
 }

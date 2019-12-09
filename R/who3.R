@@ -1,3 +1,13 @@
+#' Pipe operator
+#'
+#' @name %>%
+#' @rdname pipe
+#' @keywords internal
+#' @export
+#' @importFrom magrittr %>%
+#' @usage lhs \%>\% rhs
+NULL
+
 #' who3_bp
 #'
 #' get bounding polygons for WHO3 cities (Accra, Kathmandu)
@@ -6,8 +16,22 @@
 #' @export
 who3_bp <- function (city) {
     if (grepl ("accra", city, ignore.case = TRUE)) {
-        city <- "Accra Metropolitan"
-        res <- osmdata::getbb(place_name = city, format_out = "polygon")
+        #city <- "Greater Accra Region"
+        bnames <- c ("Accra Metropolitan", "Ga West", "Ga East",
+                     "Ashaiman", "Adenta", "Ledzokuku-Krowor") 
+        res <- lapply (bnames, function (i)
+                       osmdata::getbb(place_name = i, format_out = "polygon"))
+        # names which return multiple polygons:
+        bnames2 <- c ("Tema", "Ga South")
+        pnum <- c (1, 1)
+        res2 <- lapply (seq (bnames2), function (i)
+                        osmdata::getbb(place_name = bnames2 [i],
+                                       format_out = "polygon") [[pnum [i] ]])
+
+        res <- lapply (c (res, res2), function (i) sf::st_polygon (list (i)))
+        res <- do.call (c, res) # auto-cast to multipolygon
+        # should not buffer WSG84 data, but near enough here
+        res <- sf::st_coordinates (sf::st_buffer (res, 0)) [, 1:2]
     } else if (grepl ("kath", city, ignore.case = TRUE)) {
         bp1 <- osmdata::getbb(place_name = "Kathmandu",
                               format_out = "sf_polygon")
@@ -20,6 +44,7 @@ who3_bp <- function (city) {
 
     return (res)
 }
+
 
 #' Get street network for WHO# cities (Accra and Kathmandu)
 #'
@@ -121,33 +146,55 @@ who3_building <- function (city, save = FALSE, quiet = FALSE) {
 
 #' who3_bus_data
 #'
-#' Get bus network data for WHO3 cities (Accra, Kathmandu).
+#' Get bus stop and bus network data for WHO3 cities (Accra, Kathmandu).
 #' @inheritParams who3_network
 #' @export
 who3_bus_data <- function (city, save = FALSE) {
+    # Accra includes the bus stops within the network, Kathmandu does not
     if (grepl ("accra", city, ignore.case = TRUE)) {
-        res <- osmdata::opq ("accra ghana") %>%
+        net <- osmdata::opq ("accra ghana") %>%
             osmdata::add_osm_feature (key = "bus") %>%
             osmdata::add_osm_feature (key = "type", value = "route") %>%
             osmdata::osmdata_sc (quiet = TRUE)
+
+        bus_stops <- net$relation_members %>%
+            dplyr::filter (type == "node" & role == "platform")
+        bus_stops <- unique (bus_stops$member)
+        xy <- net$vertex [net$vertex$vertex_ %in% bus_stops, ]
+        xy <- sf::st_multipoint (as.matrix (xy [, 1:2])) %>%
+            sf::st_sfc (crs = 4326) %>%
+            st_cast ("POINT")
+        bus_stops <- sf::st_sf (id = bus_stops, geometry = xy)
+
+        # remove stops beyond the bounding polygon:
+        p <- who3_bp ("Accra")
+        p <- sf::st_polygon (list (p)) %>%
+            sf::st_sfc (crs = 4326) %>%
+            sf::st_sf ()
+        index_in <- suppressMessages (
+                which (as.integer (sf::st_within (xy, p)) == 1)
+                )
+        bus_stops <- bus_stops [index_in, ]
     } else if (grepl ("kathmandu", city, ignore.case = TRUE)) {
-        res <- osmdata::opq ("kathmandu") %>%
-            osmdata::add_osm_feature (key = "route", value = "bus") %>%
-            osmdata::osmdata_sf (quiet = FALSE) %>%
-            osmdata::osm_poly2line ()
-        l <- res$osm_multilines
-        # then extract all constituent lines
-        ids <- do.call (c, lapply (l$geometry, function (i) names (i))) %>%
-            unname () %>%
-            unique ()
-        net <- res$osm_lines [res$osm_lines$osm_id %in% ids, ]
-        # Then bus stops
         b <- osmdata::opq ("kathmandu") %>%
             osmdata::add_osm_feature (key = "public_transport") %>%
             osmdata::osmdata_sf ()
         stop_types <- names (table (b$osm_points$public_transport))
-        stops <- b$osm_points [b$osm_points$public_transport %in%
-                               stop_types, ]
+        bus_stops <- b$osm_points [b$osm_points$public_transport %in%
+                                   stop_types, ]
+        # remove all stops beyond the bounding polygon:
+        p <- who3_bp ("Kathmandu")
+        p <- sf::st_polygon (list (p)) %>%
+            sf::st_sfc (crs = 4326) %>%
+            sf::st_sf ()
+        index_in <- suppressMessages (
+                which (as.integer (sf::st_within (bus_stops, p)) == 1)
+                )
+        col_index <- which (names (bus_stops) %in%
+                            c ("osm_id", "name", "public_transport",
+                               "geometry"))
+        bus_stops <- bus_stops [index_in, col_index]
     }
+    return (bus_stops)
 }
 
