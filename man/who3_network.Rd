@@ -4,7 +4,7 @@
 \alias{who3_network}
 \title{Get street network for WHO# cities (Accra and Kathmandu)}
 \usage{
-who3_network(city, save = FALSE, quiet = FALSE)
+who3_network(city, save = TRUE, quiet = FALSE)
 }
 \arguments{
 \item{city}{Name of city for which to obtain bounding polygon}

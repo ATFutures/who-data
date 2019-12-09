@@ -4,7 +4,7 @@
 \alias{who3_building}
 \title{who3_building}
 \usage{
-who3_building(city, save = FALSE, quiet = FALSE)
+who3_building(city, save = TRUE, quiet = FALSE)
 }
 \arguments{
 \item{city}{Name of city for which to obtain bounding polygon}

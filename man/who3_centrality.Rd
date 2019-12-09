@@ -4,7 +4,7 @@
 \alias{who3_centrality}
 \title{who3_centrality}
 \usage{
-who3_centrality(city, save = FALSE, quiet = FALSE)
+who3_centrality(city, save = TRUE, quiet = FALSE)
 }
 \arguments{
 \item{city}{Name of city for which to obtain bounding polygon}
