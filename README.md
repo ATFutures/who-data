@@ -7,102 +7,42 @@ Status](https://travis-ci.org/ATFutures/who-data.svg)](https://travis-ci.org/ATF
 [![Project Status: Concept - Minimal or no implementation has been done
 yet.](http://www.repostatus.org/badges/0.1.0/concept.svg)](http://www.repostatus.org/#concept)
 
-Data for [`who` repo](https://github.com/ATFutures/who). To obtain local
-copes of all data, simply clone this repo, then run the following in the
-main repo directory:
+Data for [`who`](https://github.com/ATFutures/who) and
+[`who3`](https://github.com/ATFutures/who3) repos. This README describes
+the process to download and process `who3` data. To do that, clone this
+repo, then run the following in the main repo directory:
 
 ``` r
 devtools::load_all (".", export_all = FALSE)
-download_who_data ()
 ```
 
-That should be all that is required for to generate flow layers for each
-city via the [`flowlayers` repo](https:github.com/ATFutures/flowlayers).
-
-# Population density download and pre-processing
-
-(None of this should need to be run; it is code used to generate the
-initial files.)
-
-## worldpop (Accra and Kathmandu)
-
-Data must be manually downloaded from
-[worldpop](http://www.worldpop.org.uk/). See `?worldpop_files (type =
-"zip")` for list of which files need to be obtained. These should be in
-the relevant `<city>/popdens` directories (where `<city>` is “accra” or
-“kathmandu”). Then upload to the release `v0.0.1-worldpop-zip-gha-npl`
-with
+This project currently processes data for the two cities of Accra,
+Ghana, and Kathmandu, Nepal. Most functions accept a single `city`
+argument as one of the two of these (without country specifications).
+Having downloaded and locally installed the package, the following lines
+are necessary to pre-process and locally save required data.
 
 ``` r
-library (whodata)
-upload_worldpop_zipfiles ()
+city <- "Kathmandu" # or Accra
+bus <- who3_bus_network (city)
+hw <- who3_network (city) # way network
+cent <- who3_centrality (city) # time-based centrality for motorcars
+b <- who3_buildings (city)
+netf <- who3_flow (city) # calculate pedestrian flows from buses and activity centres
 ```
 
-These should never be needed again, but can easily be downloaded from
-the repo with
+The main results are then returned from an additional function which
+appends columns quantifying densities of motorcars, and equivalent
+dispersed values representing dispersal of pollutant away from vehicular
+sources of origin. The single additional parameter of this function
+specifies the width of a Gaussian diespersal kernel in metres.
 
 ``` r
-download_worldpop_zipfiles ()
+netf <- who3_disperse_centrality (netf, disperse_width = 200) 
 ```
 
-These files can then be converted to local `.tif` files with
-
-``` r
-crop_worldpop_tif (city = "accra")
-crop_worldpop_tif (city = "kathmandu")
-```
-
-And then uploaded via piggyback to corresponding release
-`v0.0.2-worldpop-tif-gha-npl` with
-
-``` r
-upload_worldpop_tiffiles ()
-```
-
-## Bristol
-
-There are no worldpop data for Europe, but the EC Joint Research Centre
-Data Catalogue offers 250m resolution global population density `tif`
-files. The main JRCDC page describing the [relevant
-file](http://data.jrc.ec.europa.eu/dataset/jrc-ghsl-ghs_pop_gpw4_globe_r2015a)
-leads leading to the download of
-`GHS_POP_GPW42015_GLOBE_R2015A_54009_250_v1_0.zip`, which is 1GB, and is
-not archived in this repo. This file can then be processed with
-
-``` r
-crop_global_tif (city = "Bristol")
-```
-
-# Street network up- and down-load
-
-``` r
-library (sf) # pre-load required
-cities <- who_cities () # accra, kathmandu, bristol
-junk <- lapply (cities, function (i) get_who_streets (city = i))
-junk <- lapply (cities, function (i) get_who_buildings (city = i))
-junk <- lapply (cities, function (i) get_who_busstops (city = i))
-```
-
-Then upload to repo with
-
-``` r
-upload_osm ()
-```
-
-and download with
-
-``` r
-download_osm ()
-```
-
-# Population densities matched to street network nodes
-
-This is done via the [`popdens`
-package](https://github.com/ATFutures/popdens), using the single
-`pop2point` function. Simply
-
-``` r
-popdens::pop2point (city = "kathmandu")
-popdens::pop2point (city = "accra")
-whodata::upload_popdens_nodes ()
-```
+That returns an `sf`-formatted `data.frame` with columns for pedestrian
+flows (`"flow"`), vehicular flows (`"centrality"`), and dispersed
+vehicular flows (`"centrality_disp"`). The direct exposure of
+pedestrians to vehicular emissions can then be obtained by multiplying
+`flow * centrality_disp`.
