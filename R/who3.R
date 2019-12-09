@@ -101,7 +101,8 @@ who3_network_internal <- function (city, quiet = FALSE) {
 #' @export
 who3_centrality <- function (city, save = TRUE, quiet = FALSE) {
     city <- tolower (city)
-    f <- file.path (here::here(), city, "flows", "centrality-edge.Rds")
+    f <- file.path (here::here(), city, "flows",
+                    paste0 (city, "-centrality-edge.Rds"))
     if (file.exists (f))
         net <- readRDS (f)
     else {
@@ -133,8 +134,9 @@ who3_centrality_internal <- function (city, save = TRUE, quiet = FALSE) {
         message ("\rPrepared street network ...  \n",
                  "Calculating centrality ... ", appendLF = FALSE)
 
+    dist_threshold <- 20000 # TODO: Expose as paeam
     st <- system.time (
-        netc <- dodgr::dodgr_centrality (netc)
+        netc <- dodgr::dodgr_centrality (netc, dist_threshold = dist_threshold)
     )
     if (!quiet)
         message ("\rCalculated centrality in ",
