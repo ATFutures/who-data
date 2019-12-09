@@ -69,6 +69,8 @@ who3_network <- function (city, save = TRUE, quiet = FALSE) {
 who3_network_internal <- function (city, quiet = FALSE) {
     bp <- who3_bp (city)
 
+    if (grepl ("accra", city))
+        city <- "Greater Accra Region"
     hw <- osmdata::opq (bbox = city) %>%
         osmdata::add_osm_feature (key = "highway") %>%
         osmdata::osmdata_sc (quiet = quiet) %>%
@@ -379,4 +381,89 @@ who3_bus_centrality_internal <- function (city) {
     bus <- dplyr::left_join (bus, v, by = "id")
 
     return (bus)
+}
+
+#' who3_flow
+#'
+#' Generate pedestrian flows for one WHO3 city (Accra, Kathmandu).
+#' @inheritParams who3_network
+#' @export
+who3_flow <- function (city, save = TRUE, quiet = FALSE) {
+    city <- tolower (city)
+
+    hw <- who3_network (city)
+    dodgr::dodgr_cache_off ()
+    if (!quiet)
+        message ("Preparing street network ... ", appendLF = FALSE)
+    net <- dodgr::weight_streetnet (hw, wt_profile = "foot")
+    net <- net [net$component == 1, ]
+    if (!quiet)
+        message ("\rPreparing street network ... done")
+
+    # ----- dispersal from bus stops:
+    bus <- who3_bus_centrality (city)
+    # convert density of bus centrality using NYC calibration values
+    bus$flow <- 125000 * bus$flow / max (bus$flow)
+    if (!quiet)
+        message ("Dispersing flows from bus stops ... ", appendLF = FALSE)
+    netc <- dodgr::dodgr_contract_graph (net, verts = bus$id)
+    st <- system.time (
+        netf <- dodgr::dodgr_flows_disperse (netc, from = bus$id,
+                                             dens = bus$flow, k = 400)
+        )
+    net1 <- dodgr::dodgr_uncontract_graph (netf)
+    if (!quiet)
+        message ("\rDispersing flows from bus stops in ", st [3], " seconds")
+
+    # ----- dispersal from buildings
+    b <- who3_buildings (city, quiet = quiet)
+    # Standardise densities of buildings at intersections according to values from
+    # NYC calibration of 200 pedestrians per day per building. What is unknown is
+    # total number of buildings for each city, so values are standardised to Accra data,
+    # which has a total of 20,020 buildings in a city of 2.5 million. From this we
+    # derive a scale of 1 activity building per 100 people. Note the particular
+    # necessity of this because Kathmandu has enormously more  buildings (142,278),
+    # or one for every 10 people. The residential buildings are not marked as such,
+    # so all these must be taken as activity centres, with their densities
+    # effectively reduced by 10 here.
+    get_population = function(city) {
+        switch(tolower (city),
+               "accra" = 2.27e6,
+               "kathmandu" = 1.74e6)
+    }
+    b$n <- b$n * get_population (city) / 100 / sum (b$n)
+    # Then scale to 200 walking trips per building per day:
+    b$n <- 200 * b$n
+
+    if (!quiet)
+        message ("Dispersing flows from buildings ... ", appendLF = FALSE)
+
+    # this dispersal takes a bit longer, because there are 10 times as many
+    # points, over 2.5 times the distance
+    netc <- dodgr::dodgr_contract_graph (net, verts = b$id)
+    st <- system.time (
+               netf <- dodgr::dodgr_flows_disperse (netc, from = b$id,
+                                                    dens = b$n, k = 1000)
+    )
+    net2 <- dodgr::dodgr_uncontract_graph (netf)
+    if (!quiet)
+        message ("\rDispersed flows from buildings in ", st [3], " seconds")
+
+    net1$flow <- net1$flow + net2$flow
+
+    netm <- dodgr::merge_directed_graph (net1)
+    netsf <- dodgr::dodgr_to_sf (netm)
+
+    rmcols <- c ("edge_id", "from_lon", "from_lat", "to_lon", "to_lat",
+                 "oneway.bicycle", "oneway:bicycle", "d_weighted",
+                 "time", "time_weighted", "component")
+    index <- which (!names (netsf) %in% rmcols)
+    netsf <- netsf [, index]
+
+    f <- file.path (here::here(), city, "flows", paste0 (city, "-flows.Rds"))
+    saveRDS (net1, file = f)
+    f <- file.path (here::here(), city, "flows", paste0 (city, "-flows-sf.Rds"))
+    saveRDS (netsf, file = f)
+
+    return (list (net = net1, netsf = netsf))
 }
