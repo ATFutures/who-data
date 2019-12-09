@@ -159,6 +159,7 @@ who3_buildings <- function (city, save = TRUE, quiet = FALSE) {
             stop ("Accra places of interest must first be extracted with ",
                   "the 'get_accra_gplaces' function")
         b <- readRDS (f)
+        lon <- lat <- x <- y <- NULL # suppress no visible binding notes
         bldg <- dplyr::rename (b, x = lon, y = lat)
     } else {
         if (file.exists (f)) {
@@ -193,6 +194,7 @@ who3_buildings <- function (city, save = TRUE, quiet = FALSE) {
     # Then aggregate buildings to street network intersections:
     index <- dodgr::match_points_to_graph (v, bldg [, c ("x", "y")])
     bldg$id <- v$id [index]
+    id <- NULL # suppress no visible binding notes
     bldg <- dplyr::group_by (bldg, id) %>%
         dplyr::summarise (n = length (id),
                           x = x [1],
@@ -378,6 +380,7 @@ who3_bus_centrality_internal <- function (city) {
         dplyr::group_by (id) %>%
         dplyr::summarise (flow = sum (flow))
     # join coordinates back on to vertices:
+    x <- y <- NULL # suppress no visible binding notes
     v <- dodgr::dodgr_vertices (netc) %>%
         dplyr::select (id, x, y)
     bus <- dplyr::left_join (bus, v, by = "id")
@@ -392,7 +395,24 @@ who3_bus_centrality_internal <- function (city) {
 #' @export
 who3_flow <- function (city, save = TRUE, quiet = FALSE) {
     city <- tolower (city)
+    f <- file.path (here::here(), city, "flows", paste0 (city, "-flows.Rds"))
+    fsf <- file.path (here::here(), city, "flows", paste0 (city, "-flows-sf.Rds"))
+    if (!(file.exists (f) & file.exists (fsf))) {
+        res <- who3_flow_internal (city, quiet = quiet)
+        net <- res$net
+        netsf <- res$netsf
+        if (save) {
+            saveRDS (net, file = f)
+            saveRDS (netsf, file = f)
+        }
+    } else {
+        net <- readRDS (f)
+        netsf <- readRDS (fsf)
+    }
+    return (list (net = net, netsf = netsf))
+}
 
+who3_flow_internal <- function (city, quiet = FALSE) {
     hw <- who3_network (city)
     dodgr::dodgr_cache_off ()
     if (!quiet)
@@ -462,10 +482,103 @@ who3_flow <- function (city, save = TRUE, quiet = FALSE) {
     index <- which (!names (netsf) %in% rmcols)
     netsf <- netsf [, index]
 
-    f <- file.path (here::here(), city, "flows", paste0 (city, "-flows.Rds"))
-    saveRDS (net1, file = f)
-    f <- file.path (here::here(), city, "flows", paste0 (city, "-flows-sf.Rds"))
-    saveRDS (netsf, file = f)
-
     return (list (net = net1, netsf = netsf))
+}
+
+#' who3_disperse_centrality
+#'
+#' Take a network with centrality column, disperse values away from network
+#' edges, and map onto pedestrian network.
+#' @inheritParams who3_network
+#' @param disperse_width Width in metres defining Gaussian dispersal of
+#' vehicular emissions.
+#' @export
+who3_disperse_centrality <- function (city, disperse_width = 200) {
+    city <- tolower (city)
+    message ("Preparing networks ... ", appendLF = FALSE)
+    fnet <- file.path (here::here (), city, "flows",
+                       paste0 (city, "-flows.Rds"))
+    if (!file.exists (fnet))
+        stop ("Flow file [", fnet, "] not found;\n",
+              "please first run 'who3_flow'", call. = FALSE)
+    netf <- readRDS (fnet)
+    fcent <- file.path (here::here (), city, "flows",
+                        paste0 (city, "-centrality-edge.Rds"))
+    if (!file.exists (fcent))
+        stop ("Flow file [", fcent, "] not found;\n",
+              "please first run 'who3_centrality'", call. = FALSE)
+    cent <- readRDS (fcent)
+    cent$centrality <- cent$centrality / max (cent$centrality)
+    message ("\rPreparing networks ... done")
+
+    v <- dodgr::dodgr_vertices (cent)
+    dist_to_lonlat_range <- function (verts, d = 20) {
+        xy0 <- c (mean (verts$x), mean (verts$y))
+        names (xy0) <- c ("x", "y")
+        minf <- function (a, xy0) { abs (geodist::geodist (xy0, xy0 + a) - d) }
+        stats::optimise (minf, c (0, 0.1), xy0)$minimum
+    }
+    sig <- dist_to_lonlat_range (v, d = disperse_width)
+
+    message ("Dispersing from centrality ... ", appendLF = FALSE)
+    # map centrality values on to vertices:
+    .vx0 <- .vx1 <- centrality <- id <- NULL # suppress no visible binding notes
+    cent_from <- cent %>%
+        dplyr::select (.vx0, centrality) %>%
+        dplyr::rename (id = .vx0)
+    cent_to <- cent %>%
+        dplyr::select (.vx1, centrality) %>%
+        dplyr::rename (id = .vx1)
+    vc <- dplyr::bind_rows (cent_from, cent_to) %>%
+        dplyr::group_by (id) %>%
+        dplyr::summarise (centrality = sum (centrality)) %>%
+        dplyr::left_join (dodgr::dodgr_vertices (cent), by = "id")
+
+    xy <- suppressWarnings (spatstat::ppp (vc$x, vc$y,
+                                           range (vc$x), range (vc$y),
+                                           marks = vc$centrality))
+
+    st <- system.time (
+        d <- spatstat::Smooth.ppp (xy, weights = vc$centrality,
+                                   sigma = sig, at = "points")
+        )
+    vc$centrality_disp <- d
+    message ("\rDispersing from centrality ... done in ",
+             signif (st [3], 3), " seconds")
+
+    message ("Mapping back on to network ... ", appendLF = FALSE)
+    # Then those values back on to the network edges of netf --> the pedestrian
+    # network
+    if (".vx0" %in% names (netf)) {
+        from_col <- ".vx0"
+        to_col <- ".vx1"
+    } else {
+        from_col <- "from_id"
+        to_col <- "to_id"
+    }
+
+    netf$c_from <- netf$c_to <- netf$c_from_d <- netf$c_to_d <- 0
+
+    index <- which (v$id %in% netf [[from_col]])
+    netf$c_from [match (v$id [index], netf [[from_col]])] <- vc$centrality [index]
+    netf$c_from_d [match (v$id [index], netf [[from_col]])] <-
+        vc$centrality_disp [index]
+
+    index <- which (vc$id %in% netf [[to_col]])
+    netf$c_to [match (vc$id [index], netf [[to_col]])] <- vc$centrality [index]
+    netf$c_to_d [match (vc$id [index], netf [[to_col]])] <-
+        vc$centrality_disp [index]
+
+    netf$centrality <- netf$c_from + netf$c_to
+    netf$centrality_disp <- netf$c_from_d + netf$c_to_d
+    netf$c_from <- netf$c_to <- netf$c_from_d <- netf$c_to_d <- NULL
+    netf$centrality <- netf$centrality / max (netf$centrality)
+    netf$centrality_disp <- netf$centrality_disp / max (netf$centrality_disp)
+
+    cols <- c ("flow", "centrality", "centrality_disp") # columns to keep
+    netsf <- dodgr::merge_directed_graph (netf, col_names = cols) %>%
+        dodgr::dodgr_to_sf ()
+    message ("\rMapping back on to network ... done")
+
+    return (netsf)
 }

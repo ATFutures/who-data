@@ -10,6 +10,7 @@ Description: WHO metapackage for pre-processing of WHO data.
 Imports:
     dodgr,
     dplyr,
+    geodist,
     here,
     jsonlite,
     magrittr,
@@ -20,6 +21,7 @@ Imports:
     rgdal,
     sf,
     sp,
+    spatstat,
     tibble
 Remotes:
     ATFutures/dodgr
