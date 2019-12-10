@@ -55,13 +55,17 @@ who3_bp <- function (city) {
 #' @export
 who3_network <- function (city, save = TRUE, quiet = FALSE) {
     city <- tolower (city)
-    f <- file.path (here::here(), city, "osm", paste0 (city, "-hw-sc.Rds"))
+    d <- file.path (here::here(), city, "osm")
+    f <- file.path (d, paste0 (city, "-hw-sc.Rds"))
     if (file.exists (f))
         hw <- readRDS (f)
     else {
         hw <- who3_network_internal (city, quiet = quiet)
-        if (save)
+        if (save) {
+            if (file.exists (d))
+                dir.create (d, recursive = TRUE)
             saveRDS (hw, file = f)
+        }
     }
     return (hw)
 }
@@ -101,13 +105,15 @@ who3_network_internal <- function (city, quiet = FALSE) {
 #' @export
 who3_centrality <- function (city, save = TRUE, quiet = FALSE) {
     city <- tolower (city)
-    f <- file.path (here::here(), city, "flows",
-                    paste0 (city, "-centrality-edge.Rds"))
+    d <- file.path (here::here(), city, "flows")
+    f <- file.path (d, paste0 (city, "-centrality-edge.Rds"))
     if (file.exists (f))
         net <- readRDS (f)
     else {
         net <- who3_centrality_internal (city, save = save, quiet = quiet)
         if (save) {
+            if (file.exists (d))
+                dir.create (d, recursive = TRUE)
             saveRDS (net, f)
             if (!quiet)
                 message ("Network save to [", f, "]")
@@ -168,8 +174,10 @@ who3_buildings <- function (city, save = TRUE, quiet = FALSE) {
         } else
             b <- who3_building_internal (city, save, quiet)
         if (save) {
-            fname <- file.path (here::here(), tolower (city), "osm",
-                                paste0 (tolower (city), "-bldg.Rds"))
+            dname <- file.path (here::here(), tolower (city), "osm")
+            fname <- file.path (dname, paste0 (tolower (city), "-bldg.Rds"))
+            if (file.exists (dname))
+                dir.create (dname, recursive = TRUE)
             saveRDS (b, file = fname)
         }
 
@@ -221,7 +229,8 @@ who3_building_internal <- function (city, save = TRUE, quiet = FALSE) {
 #' @export
 who3_bus_network <- function (city) {
     city <- tolower (city)
-    f <- file.path (here::here(), city, "osm", paste0 (city, "-bus-net.Rds"))
+    d <- file.path (here::here(), city, "osm")
+    f <- file.path (d, paste0 (city, "-bus-net.Rds"))
     savefile <- TRUE
 
     if (file.exists (f)) {
@@ -247,8 +256,11 @@ who3_bus_network <- function (city) {
         }
     }
 
-    if (savefile)
+    if (savefile) {
+        if (!file.exists (d))
+            dir.create (d, recursive = TRuE)
         saveRDS (net, f)
+    }
 
     return (net)
 }
@@ -319,12 +331,15 @@ who3_bus_stops <- function (city, save = TRUE) {
 #' @export
 who3_bus_centrality <- function (city) {
     city <- tolower (city)
-    f <- file.path (here::here(), city, "flows", paste0 (city, "-bus.Rds"))
+    d <- file.path (here::here(), city, "flows")
+    f <- file.path (d, paste0 (city, "-bus.Rds"))
     if (!file.exists (f)) {
         message ("Centrality file [", f, "] does not exist;\n",
                  "calculating centrality ... ", appendLF = FALSE)
         bus <- who3_bus_centrality_internal (city)
         message ("Calculating centrality ... done")
+        if (!file.exists (d))
+            dir.create (d, recursive = TRuE)
         saveRDS (bus, f)
     } else
         bus <- readRDS (f)
@@ -395,13 +410,16 @@ who3_bus_centrality_internal <- function (city) {
 #' @export
 who3_flow <- function (city, save = TRUE, quiet = FALSE) {
     city <- tolower (city)
-    f <- file.path (here::here(), city, "flows", paste0 (city, "-flows.Rds"))
-    fsf <- file.path (here::here(), city, "flows", paste0 (city, "-flows-sf.Rds"))
+    d <- file.path (here::here(), city, "flows")
+    f <- file.path (d, paste0 (city, "-flows.Rds"))
+    fsf <- file.path (d, paste0 (city, "-flows-sf.Rds"))
     if (!(file.exists (f) & file.exists (fsf))) {
         res <- who3_flow_internal (city, quiet = quiet)
         net <- res$net
         netsf <- res$netsf
         if (save) {
+            if (!file.exists (d))
+                dir.create (d, recursive = TRuE)
             saveRDS (net, file = f)
             saveRDS (netsf, file = f)
         }
@@ -496,12 +514,14 @@ who3_flow_internal <- function (city, quiet = FALSE) {
 who3_disperse_centrality <- function (city, disperse_width = 200) {
     city <- tolower (city)
     message ("Preparing networks ... ", appendLF = FALSE)
+
     fnet <- file.path (here::here (), city, "flows",
                        paste0 (city, "-flows.Rds"))
     if (!file.exists (fnet))
         stop ("Flow file [", fnet, "] not found;\n",
               "please first run 'who3_flow'", call. = FALSE)
     netf <- readRDS (fnet)
+
     fcent <- file.path (here::here (), city, "flows",
                         paste0 (city, "-centrality-edge.Rds"))
     if (!file.exists (fcent))
@@ -509,6 +529,7 @@ who3_disperse_centrality <- function (city, disperse_width = 200) {
               "please first run 'who3_centrality'", call. = FALSE)
     cent <- readRDS (fcent)
     cent$centrality <- cent$centrality / max (cent$centrality)
+
     message ("\rPreparing networks ... done")
 
     v <- dodgr::dodgr_vertices (cent)
