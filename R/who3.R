@@ -62,7 +62,7 @@ who3_network <- function (city, save = TRUE, quiet = FALSE) {
     else {
         hw <- who3_network_internal (city, quiet = quiet)
         if (save) {
-            if (file.exists (d))
+            if (!file.exists (d))
                 dir.create (d, recursive = TRUE)
             saveRDS (hw, file = f)
         }
@@ -112,7 +112,7 @@ who3_centrality <- function (city, save = TRUE, quiet = FALSE) {
     else {
         net <- who3_centrality_internal (city, save = save, quiet = quiet)
         if (save) {
-            if (file.exists (d))
+            if (!file.exists (d))
                 dir.create (d, recursive = TRUE)
             saveRDS (net, f)
             if (!quiet)
@@ -176,7 +176,7 @@ who3_buildings <- function (city, save = TRUE, quiet = FALSE) {
         if (save) {
             dname <- file.path (here::here(), tolower (city), "osm")
             fname <- file.path (dname, paste0 (tolower (city), "-bldg.Rds"))
-            if (file.exists (dname))
+            if (!file.exists (dname))
                 dir.create (dname, recursive = TRUE)
             saveRDS (b, file = fname)
         }
