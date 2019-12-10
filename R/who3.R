@@ -421,7 +421,7 @@ who3_flow <- function (city, save = TRUE, quiet = FALSE) {
             if (!file.exists (d))
                 dir.create (d, recursive = TRUE)
             saveRDS (net, file = f)
-            saveRDS (netsf, file = f)
+            saveRDS (netsf, file = fsf)
         }
     } else {
         net <- readRDS (f)
