@@ -38,7 +38,7 @@ sources of origin. The single additional parameter of this function
 specifies the width of a Gaussian diespersal kernel in metres.
 
 ``` r
-netf <- who3_disperse_centrality (netf, disperse_width = 200) 
+netf <- who3_disperse_centrality (city, disperse_width = 200) 
 ```
 
 That returns an `sf`-formatted `data.frame` with columns for pedestrian
