@@ -258,7 +258,7 @@ who3_bus_network <- function (city) {
 
     if (savefile) {
         if (!file.exists (d))
-            dir.create (d, recursive = TRuE)
+            dir.create (d, recursive = TRUE)
         saveRDS (net, f)
     }
 
@@ -339,7 +339,7 @@ who3_bus_centrality <- function (city) {
         bus <- who3_bus_centrality_internal (city)
         message ("Calculating centrality ... done")
         if (!file.exists (d))
-            dir.create (d, recursive = TRuE)
+            dir.create (d, recursive = TRUE)
         saveRDS (bus, f)
     } else
         bus <- readRDS (f)
@@ -419,7 +419,7 @@ who3_flow <- function (city, save = TRUE, quiet = FALSE) {
         netsf <- res$netsf
         if (save) {
             if (!file.exists (d))
-                dir.create (d, recursive = TRuE)
+                dir.create (d, recursive = TRUE)
             saveRDS (net, file = f)
             saveRDS (netsf, file = f)
         }
