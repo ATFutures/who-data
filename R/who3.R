@@ -457,16 +457,16 @@ who3_flow_internal <- function (city, quiet = FALSE) {
 
     # ----- dispersal from buildings
     b <- who3_buildings (city, quiet = quiet)
-    # Standardise densities of buildings at intersections according to values from
-    # NYC calibration of 200 pedestrians per day per building. What is unknown is
-    # total number of buildings for each city, so values are standardised to Accra data,
-    # which has a total of 20,020 buildings in a city of 2.5 million. From this we
-    # derive a scale of 1 activity building per 100 people. Note the particular
-    # necessity of this because Kathmandu has enormously more  buildings (142,278),
-    # or one for every 10 people. The residential buildings are not marked as such,
-    # so all these must be taken as activity centres, with their densities
-    # effectively reduced by 10 here.
-    get_population = function(city) {
+    # Standardise densities of buildings at intersections according to values
+    # from NYC calibration of 200 pedestrians per day per building. What is
+    # unknown is total number of buildings for each city, so values are
+    # standardised to Accra data, which has a total of 20,020 buildings in a
+    # city of 2.5 million. From this we derive a scale of 1 activity building
+    # per 100 people. Note the particular necessity of this because Kathmandu
+    # has enormously more  buildings (142,278), or one for every 10 people. The
+    # residential buildings are not marked as such, so all these must be taken
+    # as activity centres, with their densities effectively reduced by 10 here.
+    get_population <- function(city) {
         switch(tolower (city),
                "accra" = 2.27e6,
                "kathmandu" = 1.74e6)
@@ -536,7 +536,9 @@ who3_disperse_centrality <- function (city, disperse_width = 200) {
     dist_to_lonlat_range <- function (verts, d = 20) {
         xy0 <- c (mean (verts$x), mean (verts$y))
         names (xy0) <- c ("x", "y")
-        minf <- function (a, xy0) { abs (geodist::geodist (xy0, xy0 + a) - d) }
+        minf <- function (a, xy0) {
+            abs (geodist::geodist (xy0, xy0 + a) - d)
+        }
         stats::optimise (minf, c (0, 0.1), xy0)$minimum
     }
     sig <- dist_to_lonlat_range (v, d = disperse_width)
@@ -581,7 +583,8 @@ who3_disperse_centrality <- function (city, disperse_width = 200) {
     netf$c_from <- netf$c_to <- netf$c_from_d <- netf$c_to_d <- 0
 
     index <- which (v$id %in% netf [[from_col]])
-    netf$c_from [match (v$id [index], netf [[from_col]])] <- vc$centrality [index]
+    netf$c_from [match (v$id [index], netf [[from_col]])] <-
+        vc$centrality [index]
     netf$c_from_d [match (v$id [index], netf [[from_col]])] <-
         vc$centrality_disp [index]
 
