@@ -216,7 +216,7 @@ who3_buildings <- function (city, save = TRUE, quiet = FALSE) {
 who3_building_internal <- function (city, save = TRUE, quiet = FALSE) {
     bp <- who3_bp (city)
     bldg <- osmdata::opq (bbox = city) %>%
-        osmdata::add_osm_feature (key = "building", value = "!residential") %>%
+        osmdata::add_osm_feature (key = "building") %>%
         osmdata::osmdata_sf (quiet = quiet) %>%
         osmdata::trim_osmdata (bp)
     return (bldg)
