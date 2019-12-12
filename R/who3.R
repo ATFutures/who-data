@@ -469,7 +469,8 @@ who3_flow_internal <- function (city, quiet = FALSE) {
     # convert density of bus centrality using NYC calibration values
     bus$flow <- 125000 * bus$flow / max (bus$flow)
     if (!quiet)
-        message ("Dispersing flows from bus stops ... ", appendLF = FALSE)
+        message ("Dispersing flows from ", format (nrow (bus), big.mark = ","),
+                 " bus stops ... ", appendLF = FALSE)
     netc <- dodgr::dodgr_contract_graph (net, verts = bus$id)
     st <- system.time (
         netf <- dodgr::dodgr_flows_disperse (netc, from = bus$id,
@@ -477,7 +478,8 @@ who3_flow_internal <- function (city, quiet = FALSE) {
         )
     net1 <- dodgr::dodgr_uncontract_graph (netf)
     if (!quiet)
-        message ("\rDispersing flows from bus stops in ", st [3], " seconds")
+        message ("\rDispersing flows from ", format (nrow (bus), big.mark = ","),
+                 " bus stops in ", st [3], " seconds")
 
     # ----- dispersal from buildings
     b <- who3_buildings (city, quiet = quiet)
@@ -500,6 +502,8 @@ who3_flow_internal <- function (city, quiet = FALSE) {
     b$n <- b$n * get_population (city_dir) / 100 / sum (b$n)
     # Then scale to 200 walking trips per building per day:
     b$n <- 200 * b$n
+    if (grepl ("bristol", city))
+        b$n <- 30 * b$n
 
     if (!quiet)
         message ("Dispersing flows from ", format (nrow (b), big.mark = ","),
