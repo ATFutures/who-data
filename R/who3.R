@@ -15,6 +15,11 @@ NULL
 #' @return Matrix of coordinates of bounding polygon
 #' @export
 who3_bp <- function (city) {
+    cities <- c ("accra", "kathmandu", "bristol")
+    chk <- vapply (cities, function (i) grepl (i, city), logical (1))
+    if (!any (chk))
+        stop ("City must be one of [", paste0 (cities, collapse = ", "), "]")
+
     if (grepl ("accra", city, ignore.case = TRUE)) {
         #city <- "Greater Accra Region"
         bnames <- c ("Accra Metropolitan", "Ga West", "Ga East",
@@ -39,8 +44,11 @@ who3_bp <- function (city) {
                               format_out = "sf_polygon")
         p <- sf::st_sf (sf::st_union (c (bp1$geometry, bp2$geometry)))
         res <- sf::st_coordinates (p) [, 1:2]
-    } else
-        stop ("City must be either Accra or Kathmandu")
+    } else if (grepl ("bristol", city, ignore.case = TRUE)) {
+        p <- osmdata::getbb(place_name = "Bristol England",
+                              format_out = "sf_polygon")
+        res <- sf::st_coordinates (p) [, 1:2]
+    }
 
     return (res)
 }
