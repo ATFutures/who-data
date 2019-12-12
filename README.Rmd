@@ -37,6 +37,7 @@ locally save required data.
 city <- "Kathmandu" # or Accra
 hw <- who3_network (city) # way network
 bus <- who3_bus_network (city)
+bus <- who3_bus_centrality (city)
 cent <- who3_centrality (city) # time-based centrality for motorcars
 b <- who3_buildings (city)
 netf <- who3_flow (city) # calculate pedestrian flows from buses and activity centres
