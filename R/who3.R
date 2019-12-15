@@ -563,6 +563,15 @@ who3_disperse_centrality <- function (city, disperse_width = 200) {
     cent <- readRDS (fcent)
     cent$centrality <- cent$centrality / max (cent$centrality)
 
+    # the 'cent' and 'netf' networks are fundamentally different, because they
+    # are weighted for motorcar and pedestrian transport. To display vehicular
+    # centrality values, a separate `sf` data.frame is created, and the rows
+    # appended.
+    netf$centrality <- 0
+    cent <- tibble::add_column (cent, flow = 0, .after = "component")
+    netsf_cent <- dodgr::dodgr_to_sf (cent)
+    netsf_cent <- netsf_cent [netsf_cent$centrality > 0, ]
+
     message ("\rPreparing networks ... done")
 
     v <- dodgr::dodgr_vertices (cent)
@@ -615,10 +624,10 @@ who3_disperse_centrality <- function (city, disperse_width = 200) {
 
     netf$c_from <- netf$c_to <- netf$c_from_d <- netf$c_to_d <- 0
 
-    index <- which (v$id %in% netf [[from_col]])
-    netf$c_from [match (v$id [index], netf [[from_col]])] <-
+    index <- which (vc$id %in% netf [[from_col]])
+    netf$c_from [match (vc$id [index], netf [[from_col]])] <-
         vc$centrality [index]
-    netf$c_from_d [match (v$id [index], netf [[from_col]])] <-
+    netf$c_from_d [match (vc$id [index], netf [[from_col]])] <-
         vc$centrality_disp [index]
 
     index <- which (vc$id %in% netf [[to_col]])
@@ -636,6 +645,12 @@ who3_disperse_centrality <- function (city, disperse_width = 200) {
     netsf <- dodgr::merge_directed_graph (netf, col_names = cols) %>%
         dodgr::dodgr_to_sf ()
     message ("\rMapping back on to network ... done")
+
+    # join the centrality network from above
+    netsf$centrality <- 0
+    netsf_cent <- tibble::add_column (netsf_cent, centrality_disp = 0,
+                                      .after = "centrality")
+    netsf <- rbind (netsf, netsf_cent)
 
     return (netsf)
 }
