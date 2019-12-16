@@ -500,7 +500,8 @@ who3_flow_internal <- function (city, quiet = FALSE) {
     }
     city_dir <- gsub ("\\s.*", "", city) # take just first bit before spaces
     b$n <- b$n * get_population (city_dir) / 100 / sum (b$n)
-    # Then scale to 200 walking trips per building per day:
+    # Then scale to value of 200 walking trips per building per day from NYC
+    # calibration:
     b$n <- 200 * b$n
     if (grepl ("bristol", city))
         b$n <- 30 * b$n
@@ -554,6 +555,11 @@ who3_disperse_centrality <- function (city, disperse_width = 200) {
         stop ("Flow file [", fnet, "] not found;\n",
               "please first run 'who3_flow'", call. = FALSE)
     netf <- readRDS (fnet)
+    if (grepl ("accra", city)) {
+        # remove osm_id: 390798097 which is a motorway with alleged bus stops
+        id <- "390798097"
+        netf$flow [which (netf$object_ == id)] <- 0
+    }
 
     fcent <- file.path (here::here (), city_dir, "flows",
                         paste0 (city_dir, "-centrality-edge.Rds"))
@@ -563,18 +569,22 @@ who3_disperse_centrality <- function (city, disperse_width = 200) {
     cent <- readRDS (fcent)
     cent$centrality <- cent$centrality / max (cent$centrality)
 
-    # the 'cent' and 'netf' networks are fundamentally different, because they
-    # are weighted for motorcar and pedestrian transport. To display vehicular
-    # centrality values, a separate `sf` data.frame is created, and the rows
-    # appended.
     netf$centrality <- 0
     cent <- tibble::add_column (cent, flow = 0, .after = "component")
-    netsf_cent <- dodgr::dodgr_to_sf (cent)
-    netsf_cent <- netsf_cent [netsf_cent$centrality > 0, ]
+    index1 <- match (netf$edge_, cent$edge_)
+    index1 <- index1 [!is.na (index1)]
+    index2 <- match (cent$edge_, netf$edge_)
+    index2 <- index2 [!is.na (index2)]
+    netf$centrality [index2] <- cent$centrality [index1]
+
+    # The 'cent' network includes additional edges not present in the
+    # pedestrian-weighted version (such as motorways). These need to be added
+    # too:
+    netf <- rbind (netf, cent [which (!cent$edge_ %in% netf$edge_), ])
 
     message ("\rPreparing networks ... done")
 
-    v <- dodgr::dodgr_vertices (cent)
+    v <- dodgr::dodgr_vertices (netf)
     dist_to_lonlat_range <- function (verts, d = 20) {
         xy0 <- c (mean (verts$x), mean (verts$y))
         names (xy0) <- c ("x", "y")
@@ -588,16 +598,16 @@ who3_disperse_centrality <- function (city, disperse_width = 200) {
     message ("Dispersing from centrality ... ", appendLF = FALSE)
     # map centrality values on to vertices:
     .vx0 <- .vx1 <- centrality <- id <- NULL # suppress no visible binding notes
-    cent_from <- cent %>%
+    cent_from <- netf %>%
         dplyr::select (.vx0, centrality) %>%
         dplyr::rename (id = .vx0)
-    cent_to <- cent %>%
+    cent_to <- netf %>%
         dplyr::select (.vx1, centrality) %>%
         dplyr::rename (id = .vx1)
     vc <- dplyr::bind_rows (cent_from, cent_to) %>%
         dplyr::group_by (id) %>%
         dplyr::summarise (centrality = sum (centrality)) %>%
-        dplyr::left_join (dodgr::dodgr_vertices (cent), by = "id")
+        dplyr::left_join (dodgr::dodgr_vertices (netf), by = "id")
 
     xy <- suppressWarnings (spatstat::ppp (vc$x, vc$y,
                                            range (vc$x), range (vc$y),
@@ -622,35 +632,24 @@ who3_disperse_centrality <- function (city, disperse_width = 200) {
         to_col <- "to_id"
     }
 
-    netf$c_from <- netf$c_to <- netf$c_from_d <- netf$c_to_d <- 0
+    netf$c_from_d <- netf$c_to_d <- 0
 
     index <- which (vc$id %in% netf [[from_col]])
-    netf$c_from [match (vc$id [index], netf [[from_col]])] <-
-        vc$centrality [index]
     netf$c_from_d [match (vc$id [index], netf [[from_col]])] <-
         vc$centrality_disp [index]
 
     index <- which (vc$id %in% netf [[to_col]])
-    netf$c_to [match (vc$id [index], netf [[to_col]])] <- vc$centrality [index]
     netf$c_to_d [match (vc$id [index], netf [[to_col]])] <-
         vc$centrality_disp [index]
 
-    netf$centrality <- netf$c_from + netf$c_to
     netf$centrality_disp <- netf$c_from_d + netf$c_to_d
-    netf$c_from <- netf$c_to <- netf$c_from_d <- netf$c_to_d <- NULL
-    netf$centrality <- netf$centrality / max (netf$centrality)
+    netf$c_from_d <- netf$c_to_d <- NULL
     netf$centrality_disp <- netf$centrality_disp / max (netf$centrality_disp)
 
     cols <- c ("flow", "centrality", "centrality_disp") # columns to keep
     netsf <- dodgr::merge_directed_graph (netf, col_names = cols) %>%
         dodgr::dodgr_to_sf ()
     message ("\rMapping back on to network ... done")
-
-    # join the centrality network from above
-    netsf$centrality <- 0
-    netsf_cent <- tibble::add_column (netsf_cent, centrality_disp = 0,
-                                      .after = "centrality")
-    netsf <- rbind (netsf, netsf_cent)
 
     return (netsf)
 }
